@@ -21,13 +21,16 @@ public:
     void DispatchPacket(SerialPacket& packet) {
         std::cout << "Dispatch Serial Packet" << std::endl;
         
-        std::string command = packet.ReadString();
+        char *command = packet.ReadString();
 
         auto itr = commandMap.find(command); 
 
         if (itr != commandMap.end()) {
             itr->second(packet);
         }
+
+        // cleanup 
+        free(command);
     }
 };
 
