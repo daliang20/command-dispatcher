@@ -11,3 +11,6 @@ set(SOURCE_FILES
 add_executable(command_dispatcher ${SOURCE_FILES})
 
 target_include_directories(command_dispatcher PUBLIC include)
+target_include_directories(command_dispatcher PRIVATE third_party/)
+# target_compile_options(command_dispatcher PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(command_dispatcher PRIVATE -Werror -Wall -Wextra)
