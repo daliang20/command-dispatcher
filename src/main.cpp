@@ -1,69 +1,34 @@
 #include "command_dispatcher.hpp"
+#include "parameters.hpp"
+#include "request_packet.hpp"
+
 #include <stdio.h>
 
-void foo(int i, float j) {
-    printf("foo(%d, %g)\n", i, j);
-    return;
+#define ASSERT_PARAMETER(name)
+
+int flash(Parameters &params) {
+  uint32_t address;
+  uint32_t size;
+
+  // The order of this function matters!
+  if (AssertParameter(&address, params, "Address Error") ||
+      AssertParameter(&size, params, "Size Error") ||
+      AssertParametersEmpty(params)) {
+    printf("An Error Occured %s\n", __PRETTY_FUNCTION__);
+    return 1;
+  }
+
+  printf("%s => (%d)\n", __PRETTY_FUNCTION__, address);
+
+  return 0;
 }
 
-void bar(int i, float j, int k) {
-    printf("bar(%d, %g, %d)\n", i, j, k);
-    return;
-}
+int main() {
+  CommandDispatcher dispatcher;
 
-void foobar() {
-    printf("foobar()\n");
-    return;
-}
+  dispatcher.addCommand("flash", &flash);
 
-void flash(uint32_t address, std::string hexString, uint32_t crc) {
-    printf("flash(%x, %s, %x)\n", address, hexString.c_str(), crc);
-    return;
-}
+  dispatcher.DispatchCommand("flash 1000 1001");
 
-struct TestParameter {
-    std::vector<int> test;
-};
-
-template<> 
-TestParameter Read<TestParameter>(Packet& packet) {
-    TestParameter parameters; 
-
-    parameters.test.push_back(packet.ReadInt32());
-    parameters.test.push_back(packet.ReadInt32());
-    parameters.test.push_back(packet.ReadInt32());
-    parameters.test.push_back(packet.ReadInt32());
-
-    return parameters;
-}
-
-void aaaa(TestParameter parameters) {
-    for (auto t : parameters.test) {
-        std::cout << t << " ";
-    }
-
-    std::cout << std::endl;
-}
-
-
-int main()
-{   
-    CommandDispatcher dispatcher;
-    dispatcher.AddHandler("foo", &foo);
-    dispatcher.AddHandler("bar", &bar);
-    dispatcher.AddHandler("foobar", &foobar);
-    dispatcher.AddHandler("flash", &flash);
-    dispatcher.AddHandler("aaaa", &aaaa);
-
-    dispatcher.AddHandler(0x42, &aaaa);
-
-    SerialPacket packet("aaaa 100 69 420 00");
-    dispatcher.DispatchPacket(packet);
-
-    uint32_t data[] = { 0x42, 100, 69, 420, 00};
-
-    BinaryPacket binaryPacket((const char *)data, sizeof(data)/sizeof(data[0]));
-    dispatcher.DispatchPacket(binaryPacket);
-
-    return 0;
+  return 0;
 }
